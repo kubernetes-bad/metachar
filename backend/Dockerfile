@@ -6,5 +6,4 @@ WORKDIR /app
 COPY . /app
 RUN npm i -g @nestjs/cli && npm install && npm run build
 
-#CMD npm run start:prod
-CMD npm run start
+CMD npm run start:prod
