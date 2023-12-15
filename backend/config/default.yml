@@ -1,0 +1,20 @@
+db:
+  host: 'db'
+  port: 3306
+  database: 'metachar'
+  #username: ENV -> DB_USERNAME
+  #password: ENV -> DB_PASSWORD
+
+s3:
+  endpoint: 'minio:9000'
+  bucket: 'metachar'
+  #access_key: ENV -> AWS_FILES_S3_ACCESS_KEY
+  #secret_key: ENV -> AWS_FILES_S3_KEY_SECRET
+
+flaresolverr:
+  endpoint: 'host.docker.internal:8191'
+
+data:
+  tables:
+    input: input
+    grades: grades

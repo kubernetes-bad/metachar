@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  metachar-backend:
+    build: ./backend
+    container_name: metachar-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+
+  metachar-frontend:
+    build: ./frontend
+    container_name: metachar-frontend
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./frontend:/app
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      - MYSQL_DATABASE=metachar
+      - MYSQL_ROOT_PASSWORD=password123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3309:3306"
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2023-12-02T10-51-33Z
+    container_name: minio
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./minio/data:/data
+
+  minio-setup:
+    image: minio/mc
+    container_name: minio-setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        sleep 10;
+        /usr/bin/mc alias set minio http://minio:9000 minioadmin minioadmin;
+        /usr/bin/mc admin user add minio metachar metachar123;
+        /usr/bin/mc mb minio/metachar;
+        /usr/bin/mc policy set public minio/metachar;
+        /usr/bin/mc admin policy attach minio readwrite --user=metachar;
+        exit 0;
+      "
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+    ports:
+      - "8191:8191"
+
+volumes: 
+  mysql_data:
