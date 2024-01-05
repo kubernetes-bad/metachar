@@ -4,7 +4,7 @@ import { CharacterApi } from './api-abstact.js';
 import { JanitorCharacterService } from '../janitor/janitor.service.js';
 import JanitorCharacter from '../janitor/janitor-character.entity.js';
 
-export const JANITOR_API_ROOT = 'https://miguel.janitorai.com';
+export const JANITOR_API_ROOT = 'https://kim.janitorai.com';
 
 export default class JanitorApi extends CharacterApi<JanitorCharacter> {
   private readonly flaresolverr: Flaresolverr;
