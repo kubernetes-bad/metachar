@@ -38,7 +38,7 @@ All these components are pluggable, meaning that instead of using bundled MySQL,
 
 ## Configuration - backend
 
-You can edit file `backend/default.yml` that contains paths to flaresolverr instance and various credential info. 
+You can create a file called `backend/local.yml` that will serve as an override to the default config. That file contains paths to flaresolverr instance and various credential info. 
 
 ## Optional: Serve backend and frontend from separate URLs
 
