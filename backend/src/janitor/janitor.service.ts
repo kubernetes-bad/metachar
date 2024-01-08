@@ -78,8 +78,8 @@ export class JanitorCharacterService extends CharacterServiceProvider<JanitorCha
     jCharacter.example_dialogs = dto.example_dialogs || null;
     jCharacter.first_message = dto.first_message || null;
     jCharacter.is_nsfw = dto.is_nsfw;
-    jCharacter.total_chat = dto.total_chat;
-    jCharacter.total_message = dto.total_message;
+    jCharacter.total_chat = dto.total_chat || 0;
+    jCharacter.total_message = dto.total_message || 0;
     const dtoTags = (dto.tags || []).map((t) => t.slug);
     jCharacter.tags = Array.from(new Set(
       dtoTags.map((slug) => JanitorTag.makeWithName(JanitorApi.normalizeTag(slug))),
