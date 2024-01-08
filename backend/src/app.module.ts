@@ -31,7 +31,7 @@ import FrontendController from './frontend/frontend.controller.js';
         database: config.getOrThrow<string>('db.database'),
         entities: ['dist/**/*.entity{.ts,.js}'],
         synchronize: true,
-        logging: true,
+        // logging: true,
       }),
     }),
     ChubModule,
