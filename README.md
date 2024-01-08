@@ -34,7 +34,7 @@ This file contains some sensitive settings that you may want to change like your
 The app will be available on [port 8006](http://localhost:8006).
 
 MetaChar uses MySQL as a database, Minio as image storage, FlareSolverr as request proxy.
-All these components are pluggable, meaning that instead of using bundled MySQL, or S3 you can use your own - just edit the config in `backend/config/local.yml`
+All these components are pluggable, meaning that instead of using bundled MySQL, or S3 you can use your own - just edit the config in `backend/config/default.yml`
 
 ## Configuration - backend
 
