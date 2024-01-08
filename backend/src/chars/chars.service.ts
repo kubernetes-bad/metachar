@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import ChubCharactersService from '../chub/chub.service.js';
 import { JanitorCharacterService } from '../janitor/janitor.service.js';
@@ -37,12 +37,37 @@ function extractSearchQuery(query: string): SearchQuery {
 
 @Injectable()
 export class CharactersService {
+  private readonly logger = new Logger(CharactersService.name);
+
   constructor(
     private readonly chubCharService: ChubCharactersService,
     private readonly janitorService: JanitorCharacterService,
     @InjectRepository(ChubCharacter) private readonly chubRepo: Repository<ChubCharacter>,
     @InjectRepository(JanitorCharacter) private readonly janitorRepo: Repository<JanitorCharacter>,
-  ) {}
+  ) {
+    (async () => {
+      try {
+        const [chubCount, janitorCount] = await Promise.all([
+          this.chubRepo.count(),
+          this.janitorRepo.count(),
+        ]);
+
+        const tasks: Promise<unknown>[] = [];
+        if (chubCount === 0) {
+          this.logger.log('CHUB: EMPTY DB, PULLING FIRST PAGE!');
+          tasks.push(this.chubCharService.ingestCharacters(1));
+        }
+        if (janitorCount === 0) {
+          this.logger.log('JANITOR: EMPTY DB, PULLING FIRST PAGE!');
+          tasks.push(this.janitorService.ingestCharacters(1));
+        }
+        await Promise.all(tasks);
+        if (tasks.length) this.logger.log('INITIAL SYNC COMPLETE!');
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }
 
   public async search(query?: string | undefined, searchType?: SearchType, pageNum: number = 1): Promise<SearchResult> {
     const [chubCharsResult, janitorCharsResult] = await Promise.all([
