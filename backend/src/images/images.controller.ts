@@ -56,6 +56,7 @@ export class ImagesController {
       return new StreamableFile(imageStream);
     } catch (err) {
       res.set({ 'Content-Type': 'application/json' });
+      if (err.code === 'NoSuchKey') throw new NotFoundException('Character asset not found');
       console.error(err);
       throw new InternalServerErrorException('Something went wrong');
     }
