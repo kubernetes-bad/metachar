@@ -1,9 +1,14 @@
-FROM node:20
-
-EXPOSE 8080
+FROM node:20 AS builder
 
 WORKDIR /app
 COPY . /app
-RUN npm install
+RUN npm install && npm run build
 
-CMD ["npm", "start"]
+FROM node:20
+
+WORKDIR /app
+EXPOSE 8006
+COPY --from=builder /app/build/ /app/
+RUN npm install -g serve
+
+CMD ["serve", "-s", "/app", "-p", "8006", "--no-clipboard"]

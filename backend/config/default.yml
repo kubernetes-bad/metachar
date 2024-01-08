@@ -13,8 +13,3 @@ s3:
 
 flaresolverr:
   endpoint: 'host.docker.internal:8191'
-
-data:
-  tables:
-    input: input
-    grades: grades
