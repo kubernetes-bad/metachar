@@ -28,21 +28,21 @@ export default class JanitorApi extends CharacterApi<JanitorCharacter> {
     return charService.makeCharacterFromDTO(dto);
   }
 
-  public async getCharacters(charService: JanitorCharacterService, page = 1): Promise<{ results: JanitorCharacter[], total: number }> {
-    const key = `${JANITOR_API_ROOT}/characters?page=${page}&search=&mode=all&sort=latest`;
-
+  public async getCharacters(charService: JanitorCharacterService, page = 1, searchQuery = ''): Promise<{ results: JanitorCharacter[], total: number }> {
+    const key = `${JANITOR_API_ROOT}/characters?page=${page}&search=${encodeURIComponent(searchQuery)}&mode=all&sort=latest`;
+  
     const result = await this
       .get<{ data: JanitorCharacterDto[], total: number, size: number, page: number }>(key);
-
+  
     console.log(`JANITOR: PROCESSING PAGE ${page}...`);
-
+  
     if (!result.data.length) return { results: [], total: 0 };
     const characters = await Promise.all(
       result.data.map((dto) => charService.makeCharacterFromDTO(dto)),
     );
-
+  
     return { results: characters, total: result.total };
-  }
+  }  
 
   public async getTags(charService: JanitorCharacterService): Promise<string[]> {
     const key = `${JANITOR_API_ROOT}/tags`;

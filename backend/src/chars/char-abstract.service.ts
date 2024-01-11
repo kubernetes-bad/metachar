@@ -6,10 +6,13 @@ export abstract class CharacterServiceProvider<T extends BaseEntity> {
 
   public abstract ingestCharacter(id: string): Promise<T | null>;
   public abstract ingestCharacters(pageNumber: number): Promise<T[]>;
-  public abstract freshCharacters(): Promise<any>;
+  public abstract freshCharacters(searchQuery: string): Promise<any>;
+  public abstract freshCharactersBySearch(maxPageNumber: number, searchQuery: string, startingPage: number): Promise<any>;
   public abstract makeCharacterFromDTO(dto: unknown): Promise<T>;
   public abstract search(query: string | undefined, searchType: SearchType | undefined, pageNum: number): Promise<{ result: T[], total: number }>;
   public abstract getLatestCharacters(count: number): Promise<T[]>;
+
+
 
   public async getCharacterById(id: string): Promise<T | null> {
     return this.repository.createQueryBuilder('char')

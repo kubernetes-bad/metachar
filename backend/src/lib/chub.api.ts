@@ -11,14 +11,14 @@ export default class ChubApi extends CharacterApi<ChubCharacter> {
     super(CHUB_API);
   }
 
-  public async getCharacters(charService: ChubCharactersService, page = 1, order: 'desc' | 'asc' = 'desc'): Promise<{ results: ChubCharacter[], total: number }> {
+  public async getCharacters(charService: ChubCharactersService, page = 1, order: 'desc' | 'asc' = 'desc', searchQuery = ''): Promise<{ results: ChubCharacter[], total: number }> {
     console.log(`CHUB: PROCESSING PAGE ${page}...`);
     // https://api.chub.ai/search?search=&first=10&topics=&excludetopics=&page=1&sort=created_at&venus=true&min_tokens=50&nsfw=true
-    const key = `/search?search=&first=${SEARCH_PAGE_SIZE}&topics=&excludetopics=&page=${page}&sort=id&asc=${order === 'asc'}&venus=true&min_tokens=${SEARCH_MIN_TOKENS}&nsfw=true`;
-
+    const key = `/search?search=${encodeURIComponent(searchQuery)}&first=${SEARCH_PAGE_SIZE}&topics=&excludetopics=&page=${page}&sort=id&asc=${order === 'asc'}&venus=true&min_tokens=${SEARCH_MIN_TOKENS}&nsfw=true`;
+  
     const result = await this.client.get<ChubCharacterSearchDTO>(key);
     if (!result?.data?.data?.nodes.length) return { results: [], total: 0 };
-
+  
     const total = result.data.data.count;
     const results = await Promise.all(
       result.data.data.nodes.map((node: { [key: string]: any }) => charService.makeCharacterFromDTO(node, true))
@@ -26,7 +26,7 @@ export default class ChubApi extends CharacterApi<ChubCharacter> {
     return {
       results, total,
     };
-  }
+  }  
 
   public async getCharacter(charService: ChubCharactersService, fullPath: string): Promise<ChubCharacter | null> {
     if (!fullPath) return null;
