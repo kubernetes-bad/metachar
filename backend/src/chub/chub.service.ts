@@ -62,25 +62,26 @@ export default class ChubCharactersService extends CharacterServiceProvider<Chub
     let allCharacters: ChubCharacter[] = [];
   
     while (pageNumber <= maxPageNumber) {
-      try {
-        const { results, total } = await this.api.getCharacters(this, pageNumber, 'desc', searchQuery);
-        if (!results.length) {
-          break; // Exit loop if no more results
-        }
-  
-        const pageCharacters = await Promise.all(
-          results.map(async (chubCharacter) =>
-            this.api.getCharacter(this, chubCharacter.fullPath)
-              .then((char) => char ? this.saveIngestableCharacter(char) : null)
-          )
-        );
-  
-        allCharacters = [...allCharacters, ...pageCharacters.filter(char => char !== null) as ChubCharacter[]];
-        pageNumber++;
-      } catch (error) {
-        this.logger.error(`Error fetching page ${pageNumber}: ${error}`);
-        break;
+      const { results, total } = await this.api.getCharacters(this, pageNumber, 'desc', searchQuery);
+      if (!results.length) {
+        break; // Exit loop if no more results
       }
+  
+      for (const chubCharacter of results) {
+        try {
+          const character = await this.api.getCharacter(this, chubCharacter.fullPath);
+          if (character && character.title && character.title.length <= 64) {
+            const savedCharacter = await this.saveIngestableCharacter(character);
+            if (savedCharacter) {
+              allCharacters.push(savedCharacter);
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Error processing character with fullPath ${chubCharacter.fullPath}: ${error}`);
+          // Continue with the next character
+        }
+      }
+      pageNumber++;
     }
   
     return allCharacters;

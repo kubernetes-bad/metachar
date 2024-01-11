@@ -63,29 +63,29 @@ export class JanitorCharacterService extends CharacterServiceProvider<JanitorCha
     let allCharacters: JanitorCharacter[] = [];
   
     while (pageNumber <= maxPageNumber) {
-      try {
-        const { results, total } = await this.api.getCharacters(this, pageNumber, searchQuery); // Adjusted to pass searchQuery
-        if (!results.length) {
-          break; // Exit loop if no more results
-        }
-  
-        const pageCharacters = await Promise.all(
-          results.map(async (dto) =>
-            this.api.getCharacter(this, dto.id) // Adjusted to use dto.id instead of dto.fullPath
-              .then((char) => char ? this.saveIngestableCharacter(char) : null)
-          )
-        );
-  
-        allCharacters = [...allCharacters, ...pageCharacters.filter(char => char !== null) as JanitorCharacter[]];
-        pageNumber++;
-      } catch (error) {
-        this.logger.error(`Error fetching page ${pageNumber}: ${error}`);
-        break;
+      const { results, total } = await this.api.getCharacters(this, pageNumber, searchQuery);
+      if (!results.length) {
+        break; // Exit loop if no more results
       }
+  
+      for (const dto of results) {
+        try {
+          const character = await this.api.getCharacter(this, dto.id);
+          if (character && character.name && character.name.length <= 250) {
+            const savedCharacter = await this.saveIngestableCharacter(character);
+            if (savedCharacter) {
+              allCharacters.push(savedCharacter);
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Error processing character with ID ${dto.id}: ${error}`);
+        }
+      }
+      pageNumber++;
     }
   
     return allCharacters;
-  }
+  }  
 
 
   @Cron('0 10 * * * *')

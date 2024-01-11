@@ -20,6 +20,16 @@ export default class ChubController {
     return chubCharacter;
   }
 
+  @Post('ingestBySearch')
+  async ingestCharactersBySearch(
+    @Req() req: Request,
+    @Body('maxPage') maxPage: number,
+    @Body('searchQuery') searchQuery: string,
+    @Body('startPage') startPage: number,
+  ) {
+    return this.chubService.freshCharactersBySearch(maxPage, searchQuery, startPage);
+  }
+
   @Post('ingestAll')
   async ingestPage(
     @Req() req: Request,
