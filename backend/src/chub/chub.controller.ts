@@ -27,7 +27,17 @@ export default class ChubController {
     @Body('searchQuery') searchQuery: string,
     @Body('startPage') startPage: number,
   ) {
-    return this.chubService.freshCharactersBySearch(maxPage, searchQuery, startPage);
+    // Start the ingestion process in the background
+    this.chubService.freshCharactersBySearch(maxPage, searchQuery, startPage)
+      .then(() => {
+        console.log('Ingestion process completed.');
+      })
+      .catch((error) => {
+        console.error('Ingestion process failed:', error);
+      });
+  
+    // Immediately return a response to the client
+    return { message: 'Ingest has been started' };
   }
 
   @Post('ingestAll')

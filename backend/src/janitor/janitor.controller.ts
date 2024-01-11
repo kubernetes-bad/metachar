@@ -21,7 +21,6 @@ export class JanitorController {
   @Post('ingestBySearch')
   async ingestCharactersBySearch(
     @Req() req: Request,
-    @Res() res: Response,
     @Body('maxPage') maxPage: number,
     @Body('searchQuery') searchQuery: string,
     @Body('startPage') startPage: number,
@@ -36,7 +35,7 @@ export class JanitorController {
       });
   
     // Immediately return a response to the client
-    return res.status(202).send({ message: 'Ingest has been started' });
+    return { message: 'Ingest has been started' };
   }
 
   @Post('ingestAll')
