@@ -57,10 +57,46 @@ export class JanitorCharacterService extends CharacterServiceProvider<JanitorCha
     ).then((chars) => chars.filter(char => char !== null) as JanitorCharacter[]);
   }
 
+  public async ingestAllCharacters(maxPageNumber: number, searchQuery: string, startingPage: number = 1): Promise<JanitorCharacter[]> {
+    await this.ingestTags();
+    let pageNumber = startingPage;
+    let allCharacters: JanitorCharacter[] = [];
+  
+    while (pageNumber <= maxPageNumber) {
+      const { results, total } = await this.api.getCharacters(this, pageNumber, searchQuery);
+      if (!results.length) {
+        break; // Exit loop if no more results
+      }
+  
+      for (const dto of results) {
+        try {
+          const character = await this.api.getCharacter(this, dto.id);
+          if (character && character.name && character.name.length <= 250) {
+            const savedCharacter = await this.saveIngestableCharacter(character);
+            if (savedCharacter) {
+              allCharacters.push(savedCharacter);
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Error processing character with ID ${dto.id}: ${error}`);
+        }
+      }
+      pageNumber++;
+    }
+  
+    return allCharacters;
+  }  
+
+
   @Cron('0 10 * * * *')
   public async freshCharacters() {
     this.logger.log(`JANITOR: INGESTING FRESH CHARS...`);
     return this.ingestCharacters(1);
+  }
+
+  public async freshCharactersBySearch(maxPageNumber: number, searchQuery: string, startingPage: number = 1) {
+    this.logger.log(`JANITOR: INGESTING RECENT CHARS VIA SEARCH TERM: ${searchQuery} STARTPAGE: ${startingPage} MAXPAGE: ${maxPageNumber}`);
+    return this.ingestAllCharacters(maxPageNumber, searchQuery, startingPage);
   }
 
   async makeCharacterFromDTO(dto: JanitorCharacterDto): Promise<JanitorCharacter> {

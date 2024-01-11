@@ -56,12 +56,48 @@ export default class ChubCharactersService extends CharacterServiceProvider<Chub
     ).then((chars) => chars.filter(char => char !== null) as ChubCharacter[]);
   }
 
+  public async ingestAllCharacters(maxPageNumber: number, searchQuery: string, startingPage: number = 1): Promise<ChubCharacter[]> {
+    await this.ingestTags();
+    let pageNumber = startingPage;
+    let allCharacters: ChubCharacter[] = [];
+  
+    while (pageNumber <= maxPageNumber) {
+      const { results, total } = await this.api.getCharacters(this, pageNumber, 'desc', searchQuery);
+      if (!results.length) {
+        break; // Exit loop if no more results
+      }
+  
+      for (const chubCharacter of results) {
+        try {
+          const character = await this.api.getCharacter(this, chubCharacter.fullPath);
+          if (character && character.title && character.title.length <= 64) {
+            const savedCharacter = await this.saveIngestableCharacter(character);
+            if (savedCharacter) {
+              allCharacters.push(savedCharacter);
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Error processing character with fullPath ${chubCharacter.fullPath}: ${error}`);
+          // Continue with the next character
+        }
+      }
+      pageNumber++;
+    }
+  
+    return allCharacters;
+  }  
+
   @Cron('0 10 * * * *')
   public async freshCharacters() {
     this.logger.log(`CHUB: INGESTING FRESH CHARS...`);
     return this.ingestCharacters(1);
   }
 
+  public async freshCharactersBySearch(maxPageNumber: number, searchQuery: string, startingPage: number = 1) {
+    this.logger.log(`CHUB: INGESTING RECENT CHARS VIA SEARCH TERM: ${searchQuery} STARTPAGE: ${startingPage} MAXPAGE: ${maxPageNumber}`);
+    return this.ingestAllCharacters(maxPageNumber, searchQuery, startingPage);
+  }
+  
   public async makeCharacterFromDTO(node: {  [key: string]: any }, skipAssets = false): Promise<ChubCharacter> {
     const result = new ChubCharacter();
     Object.assign(result, node);

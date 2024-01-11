@@ -18,6 +18,26 @@ export class JanitorController {
     return jCharacter;
   }
 
+  @Post('ingestBySearch')
+  async ingestCharactersBySearch(
+    @Req() req: Request,
+    @Body('maxPage') maxPage: number,
+    @Body('searchQuery') searchQuery: string,
+    @Body('startPage') startPage: number,
+  ) {
+    // Start the ingestion process in the background
+    this.janitorCharService.freshCharactersBySearch(maxPage, searchQuery, startPage)
+      .then(() => {
+        console.log('Ingestion process completed.');
+      })
+      .catch((error) => {
+        console.error('Ingestion process failed:', error);
+      });
+  
+    // Immediately return a response to the client
+    return { message: 'Ingest has been started' };
+  }
+
   @Post('ingestAll')
   async ingestPage(
     @Req() req: Request,
